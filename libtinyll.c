@@ -42,12 +42,32 @@ int add_read_access_rule(int rset_fd,int allowed_fd) {
 	return result;
 }
 
+int add_file_read_access_rule(int rset_fd,int allowed_fd) {
+	int result;
+	struct landlock_path_beneath_attr target;
+	target.parent_fd = allowed_fd;
+	target.allowed_access = LANDLOCK_ACCESS_FS_READ_FILE;
+	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
+	return result;
+}
+
 int add_read_access_rule_by_path(int rset_fd,char *allowed_path) {
 	int result;
 	int allowed_fd = open(allowed_path,O_PATH | O_CLOEXEC);
 	struct landlock_path_beneath_attr target;
 	target.parent_fd = allowed_fd;
 	target.allowed_access = LANDLOCK_ACCESS_FS_READ_FILE | LANDLOCK_ACCESS_FS_READ_DIR;
+	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
+	close(allowed_fd);
+	return result;
+}
+
+int add_file_read_access_rule_by_path(int rset_fd,char *allowed_path) {
+	int result;
+	int allowed_fd = open(allowed_path,O_PATH | O_CLOEXEC);
+	struct landlock_path_beneath_attr target;
+	target.parent_fd = allowed_fd;
+	target.allowed_access = LANDLOCK_ACCESS_FS_READ_FILE;
 	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
 	close(allowed_fd);
 	return result;
@@ -74,6 +94,26 @@ int add_write_access_rule_by_path(int rset_fd,char *allowed_path,int restricted)
 		close(allowed_fd);
 		return -1;
 	}
+	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
+	close(allowed_fd);
+	return result;
+}
+
+int add_file_write_access_rule(int rset_fd,int allowed_fd) {
+	int result;
+	struct landlock_path_beneath_attr target;
+	target.parent_fd = allowed_fd;
+	target.allowed_access = LANDLOCK_ACCESS_FS_WRITE_FILE | LANDLOCK_ACCESS_FS_REMOVE_FILE;
+	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
+	return result;
+}
+
+int add__file_write_access_rule_by_path(int rset_fd,char *allowed_path) {
+	int result;
+	int allowed_fd = open(allowed_path,O_PATH | O_CLOEXEC);
+	struct landlock_path_beneath_attr target;
+	target.parent_fd = allowed_fd;
+	target.allowed_access = LANDLOCK_ACCESS_FS_WRITE_FILE | LANDLOCK_ACCESS_FS_REMOVE_FILE;
 	result = landlock_add_rule(rset_fd,LANDLOCK_RULE_PATH_BENEATH,&target,0);
 	close(allowed_fd);
 	return result;
